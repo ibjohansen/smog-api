@@ -30,7 +30,7 @@ app.get('/', function (req, res) {
 //returnerer noden om den finnes, eller en 404 med feilmeldingen fra tjenesten om den ikke finner
 app.get('/stationdata', function (req, res) {
     request
-        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=941,23,39,333,1119,913,933,1040,1201&format=json&key=UuDoMtfi')
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=44,21,36,334,553,1022,935,1042,1204&format=xml&key=UuDoMtfi')
         .end(function (err, result) {
             res.status(200).send(result.body)
         });

@@ -12,5 +12,9 @@
   },
   "author": "Acando Norge",
   "license": "private",
-  "homepage": "https://github.com/ibjohansen/smog-api#readme"
+  "homepage": "https://github.com/ibjohansen/smog-api#readme",
+  "dependencies": {
+    "express": "^4.13.4",
+    "firebase": "^2.4.1"
+  }
 }

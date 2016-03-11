@@ -36,7 +36,7 @@ app.get('/stationdata', function (req, res) {
         }), function (error) {
             console.log('404')
             res.status(404).send(error)
-        });
+        }
 });
 
 

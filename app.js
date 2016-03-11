@@ -31,6 +31,9 @@ app.get('/stationdata', function (req, res) {
         .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=44,21,36,334,553,1022,935,1042,1204&format=xml&key=UuDoMtfi')
         .end(function (err, result) {
             res.status(200).send(result.body)
+        }), function (error) {
+            console.log('404')
+            res.status(404).send(error)
         });
 });
 

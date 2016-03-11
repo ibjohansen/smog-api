@@ -3,6 +3,8 @@
 var Express = require('express');
 var Firebase = require('firebase');
 var request = require('superagent');
+var stations = require('./stations');
+
 
 //variabel med url til Firebase-noden som inneholder våre data
 var baseUrl = 'https://smog-api.firebaseio.com/';
@@ -34,38 +36,42 @@ app.get('/stationdata', function (req, res) {
         });
 });
 
+
 app.get('/stationdata/:lat/:long', function (req, res) {
-
-    var result = {
-        body: {
-            "Id": 464,
-            "Owner": "Oslo kommune",
-            "Name": "Bygdøy Allé",
-            "CoordinateX": 10.69707,
-            "CoordinateY": 59.91898,
-            "TimeSeries": [
-                {
-                    "Id": 913,
-                    "Component": "PM2.5",
-                    "Unit": "µg/m³",
-                    "Timestep": 3600,
-                    "DataType": "AirQuality",
-                    "Measurments": [
-                        {
-                            "DateTimeFrom": "201603111800",
-                            "DateTimeTo": "201603111900",
-                            "Value": 19,
-                            "QualityControlledData": false,
-                            "Valid": true
-                        }
-                    ]
-                }
-            ]
-        }
-    };
-
-    res.status(200).send(result.body)
+    var closestStation = sortByDistance({lat: req.params.lat, long: req.params.long}, stations.getAllStations ());
+    request
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + closestStation[0].timeserie + '&format=json&key=UuDoMtfi')
+        .end(function (err, result) {
+            res.status(200).send(result.body)
+        });
 });
+
+
+
+
+
+function distanceBetweenPoints(p1, p2) {
+    return Math.abs(Math.sqrt((p1.lat - p2.lat) * (p1.lat - p2.lat) + (p1.long - p2.long) * (p1.long - p2.long)));
+}
+
+function sortByDistance(location, arrayOfPoints) {
+    arrayOfPoints.sort(function (a, b) {
+        a.distance = distanceBetweenPoints(location, a.location);
+        b.distance = distanceBetweenPoints(location, b.location);
+        return a.distanxe - b.distance;
+    });
+    return arrayOfPoints;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 /*

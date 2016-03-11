@@ -3,6 +3,8 @@
 var Express = require('express');
 var Firebase = require('firebase');
 var request = require('superagent');
+var stations = require('./stations');
+
 
 //variabel med url til Firebase-noden som inneholder våre data
 var baseUrl = 'https://smog-api.firebaseio.com/';
@@ -28,44 +30,33 @@ app.get('/', function (req, res) {
 //returnerer noden om den finnes, eller en 404 med feilmeldingen fra tjenesten om den ikke finner
 app.get('/stationdata', function (req, res) {
     request
-        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=941,23,39,333,1119,913,933,1040,1201&format=json&key=UuDoMtfi')
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=44,21,36,334,553,1022,935,1042,1204&format=xml&key=UuDoMtfi')
+        .end(function (err, result) {
+            res.status(200).send(result.body)
+        }), function (error) {
+            console.log('404')
+            res.status(404).send(error)
+        }
+});
+
+
+app.get('/stationdata/:lat/:long', function (req, res) {
+    var closestStation = stations.getClosesStation({lat: req.params.lat, long: req.params.long});
+    request
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + closestStation.timeserie + '&format=json&key=UuDoMtfi')
         .end(function (err, result) {
             res.status(200).send(result.body)
         });
 });
 
-app.get('/stationdata/:lat/:long', function (req, res) {
 
-    var result = {
-        body: {
-            "Id": 464,
-            "Owner": "Oslo kommune",
-            "Name": "Bygdøy Allé",
-            "CoordinateX": 10.69707,
-            "CoordinateY": 59.91898,
-            "TimeSeries": [
-                {
-                    "Id": 913,
-                    "Component": "PM2.5",
-                    "Unit": "µg/m³",
-                    "Timestep": 3600,
-                    "DataType": "AirQuality",
-                    "Measurments": [
-                        {
-                            "DateTimeFrom": "201603111800",
-                            "DateTimeTo": "201603111900",
-                            "Value": 19,
-                            "QualityControlledData": false,
-                            "Valid": true
-                        }
-                    ]
-                }
-            ]
-        }
-    };
 
-    res.status(200).send(result.body)
-});
+
+
+
+
+
+
 
 
 app.get('/updatestations/', function (req, res) {
@@ -167,7 +158,7 @@ app.get('/temperatureposting/:id', function (req, res) {
 //returnerer status 200 og database-ID'en til noden du akkurat skrev
 app.put('/temperatureposting/create/:userid/:location/:temperature', function (req, res) {
     if (req.params.userid && req.params.location && req.params.temperature) {
-        _writeTemperatureNode(req.params.userid, req.params.location, req.params.temperature).then(function (response) {
+        _writeTemperatureNode(req.params.userid, req.pngarams.location, req.params.temperature).then(function (response) {
             var result = 'New temperatureposting created with key: ' + response.key();
             res.status(200).send(result)
         }, function (error) {

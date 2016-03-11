@@ -15,6 +15,7 @@
   "homepage": "https://github.com/ibjohansen/smog-api#readme",
   "dependencies": {
     "express": "^4.13.4",
-    "firebase": "^2.4.1"
+    "firebase": "^2.4.1",
+    "superagent": "^1.8.0"
   }
 }

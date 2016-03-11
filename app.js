@@ -2,6 +2,7 @@
 //importer nødvendige bibliotek
 var Express = require('express');
 var Firebase = require('firebase');
+var request = require('superagent');
 
 //variabel med url til Firebase-noden som inneholder våre data
 var baseUrl = 'https://smog-api.firebaseio.com/';
@@ -20,6 +21,23 @@ var server = app.listen(process.env.PORT || 5555, function () {
 app.get('/', function (req, res) {
     res.send('API svarer!')
 });
+
+
+//rute med request-parameter: id
+//brukes slik: /.../text/-JiEPn2FMzEZldTFUmxp
+//returnerer noden om den finnes, eller en 404 med feilmeldingen fra tjenesten om den ikke finner
+app.get('/stationdata', function (req, res) {
+    request
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=941,23,39,333,1119,913,933,1040,1201&format=json&key=UuDoMtfi')
+        .end(function (err, result) {
+            res.status(200).send(result.body)
+        });
+});
+
+
+/*
+ ---------------
+ */
 
 //rute med request-parameter: id
 //brukes slik: /.../text/-JiEPn2FMzEZldTFUmxp

@@ -34,6 +34,39 @@ app.get('/stationdata', function (req, res) {
         });
 });
 
+app.get('/stationdata/:lat/:long', function (req, res) {
+
+    var result = {
+        body: {
+            "Id": 464,
+            "Owner": "Oslo kommune",
+            "Name": "Bygdøy Allé",
+            "CoordinateX": 10.69707,
+            "CoordinateY": 59.91898,
+            "TimeSeries": [
+                {
+                    "Id": 913,
+                    "Component": "PM2.5",
+                    "Unit": "µg/m³",
+                    "Timestep": 3600,
+                    "DataType": "AirQuality",
+                    "Measurments": [
+                        {
+                            "DateTimeFrom": "201603111800",
+                            "DateTimeTo": "201603111900",
+                            "Value": 19,
+                            "QualityControlledData": false,
+                            "Valid": true
+                        }
+                    ]
+                }
+            ]
+        }
+    };
+
+    res.status(200).send(result.body)
+});
+
 
 /*
  ---------------

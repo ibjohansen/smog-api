@@ -1,0 +1,16 @@
+{
+  "name": "smog-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibjohansen/smog-api.git"
+  },
+  "author": "Acando Norge",
+  "license": "private",
+  "homepage": "https://github.com/ibjohansen/smog-api#readme"
+}

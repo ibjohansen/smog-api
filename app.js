@@ -112,7 +112,7 @@ app.get('/temperatureposting/:id', function (req, res) {
 //returnerer status 200 og database-ID'en til noden du akkurat skrev
 app.put('/temperatureposting/create/:userid/:location/:temperature', function (req, res) {
     if (req.params.userid && req.params.location && req.params.temperature) {
-        _writeTemperatureNode(req.params.userid, req.params.location, req.params.temperature).then(function (response) {
+        _writeTemperatureNode(req.params.userid, req.pngarams.location, req.params.temperature).then(function (response) {
             var result = 'New temperatureposting created with key: ' + response.key();
             res.status(200).send(result)
         }, function (error) {

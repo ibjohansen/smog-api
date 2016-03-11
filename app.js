@@ -68,6 +68,70 @@ app.get('/stationdata/:lat/:long', function (req, res) {
 });
 
 
+app.get('/updatestations/', function (req, res) {
+
+  var nO2seriesids = [ 44, 21, 36, 334, 553, 935, 1022, 1042, 1204 ];
+  var ref = new Firebase(baseUrl);
+
+  var stationRef = ref.child("stations");
+
+  request
+    .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/')
+    .query({ id: nO2seriesids.join(','), format: 'json', key: 'UuDoMtfi' })
+    .end(function(err, result) {
+
+      var stations = JSON.parse(result.text);
+      //console.log(stations);
+
+      stations.forEach(function (s) {
+         stationRef.child(s.Id).set( {
+           id: s.Id,
+           name: s.Name,
+           lat: s.CoordinateX,
+           long: s.CoordinateY,
+           NO2: s.TimeSeries[0].Id
+         });
+
+      });
+
+          res.status(200).send(result.text);
+    });
+
+
+});
+
+
+app.get('/updateno2/', function (req, res) {
+
+  var nO2seriesids = [ 44, 21, 36, 334, 553, 935, 1022, 1042, 1204 ];
+  var ref = new Firebase(baseUrl);
+
+  var stationRef = ref.child("NO2");
+
+  request
+    .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/')
+    .query({ id: nO2seriesids.join(','), format: 'json', key: 'UuDoMtfi' })
+    .end(function(err, result) {
+
+      var stations = JSON.parse(result.text);
+      //console.log(stations);
+
+      stations.forEach(function (s) {
+         stationRef.child(s.Id).set( {
+           id: s.Id,
+           no2id : s.TimeSeries[0].Id,
+           measurement: s.TimeSeries[0].Measurments[0]
+         });
+
+      });
+
+          res.status(200).send(result.text);
+    });
+
+
+});
+
+
 /*
  ---------------
  */

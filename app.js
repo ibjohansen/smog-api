@@ -30,7 +30,7 @@ app.get('/', function (req, res) {
 //returnerer noden om den finnes, eller en 404 med feilmeldingen fra tjenesten om den ikke finner
 app.get('/stationdata', function (req, res) {
     request
-        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=44,21,36,334,553,1022,935,1042,1204&format=xml&key=UuDoMtfi')
+        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=44,21,36,334,553,1022,935,1042,1204&format=json&key=UuDoMtfi&')
         .end(function (err, result) {
             res.status(200).send(result.body)
         }), function (error) {
@@ -41,15 +41,16 @@ app.get('/stationdata', function (req, res) {
 
 
 app.get('/stationdata/:lat/:long', function (req, res) {
-    var closestStation = stations.getClosesStation({lat: req.params.lat, long: req.params.long});
-    request
-        .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + closestStation.timeserie + '&format=json&key=UuDoMtfi')
-        .end(function (err, result) {
-            res.status(200).send(result.body)
-        });
+    stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function(closestStation) {
+        request
+            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + closestStation.NO2 + '&format=json&key=UuDoMtfi&from=201603112000&to=201603112200&')
+            .end(function (err, result) {
+                res.status(200).send(result.body)
+            }, function(e) {
+                res.status(200).send(e);
+            });
+    })
 });
-
-
 
 
 

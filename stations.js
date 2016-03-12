@@ -9,7 +9,7 @@ exports.getClosesStation = function(location) {
             var arrayOfPoints = stations.sort(function (a, b) {
                 a.distance = distanceBetweenPoints(location, {lat: a.lat, long: a.long});
                 b.distance = distanceBetweenPoints(location, {lat: b.lat, long: b.long});
-                return a.distance - b.distance;
+                return b.distance - a.distance;
             });
             resolve(arrayOfPoints[0]);
         },function(e) {

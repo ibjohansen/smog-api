@@ -47,6 +47,15 @@ app.get('/stationdata', function (req, res) {
   }
 });
 
+app.get('/allStationData', function (req, res) {
+  stations.getStationsWithDataFromFirebase().then(function (stations) {
+    res.status(200).send(stations)
+  }, function (e) {
+    res.status(200).send(e);
+  })
+});
+
+
 app.get('/stationdata/:lat/:long', function (req, res) {
   stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function (closestStation) {
     res.status(200).send(closestStation)

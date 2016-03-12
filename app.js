@@ -12,6 +12,13 @@ var baseUrl = 'https://smog-api.firebaseio.com/';
 //opprett en instans av Express
 var app = Express();
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+
 //start serveren med å lytte på port 5555, logg en beskjed til konsollet.
 //merk at vi setter serveren til  å lytte på den porten den får tildelt av kjøremiljøet,
 //eller 5555 om den eksempelvis kjører på localhost

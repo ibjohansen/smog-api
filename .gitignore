@@ -1,2 +1,7 @@
 node_modules
-.idea
+*.log
+*.zip
+*.tgz
+*.iml
+.idea/
+.DS_Store

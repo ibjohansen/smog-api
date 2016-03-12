@@ -123,7 +123,6 @@ app.get('/updateno2/', function (req, res) {
          });
 
       });
-
           res.status(200).send(result.text);
     });
 

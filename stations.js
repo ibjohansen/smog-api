@@ -8,7 +8,7 @@ exports.getClosesStation = function(location) {
             var arrayOfPoints = stations.sort(function (a, b) {
                 a.distance = distanceBetweenPoints(location, {lat: a.lat, long: a.long});
                 b.distance = distanceBetweenPoints(location, {lat: b.lat, long: b.long});
-                return b.distance - a.distance;
+                return a.distance - b.distance;
             });
             resolve(arrayOfPoints[0]);
         },function(e) {
@@ -28,7 +28,7 @@ exports.getAllTimeseries = function() {
                 }
             }
             resolve(timeseries);
-        }, function(e) {
+        }, function() {
             resolve([]);
         })
     });
@@ -49,7 +49,7 @@ function getStationsFromFirebase() {
     });
 }
 
-
+exports.getStationsWithDataFromFirebase = getStationsWithDataFromFirebase;
 function getStationsWithDataFromFirebase() {
     return new Promise(function (resolve, reject) {
         var db = new Firebase(baseUrl + '/data/');

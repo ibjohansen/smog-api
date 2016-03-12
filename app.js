@@ -5,6 +5,10 @@ var Firebase = require('firebase');
 var request = require('superagent');
 var stations = require('./stations');
 
+const TREND_EUQAL = 0;
+const TREND_INCREASING = 1;
+const TREND_DECREASING = -1;
+
 //variabel med url til Firebase-noden som inneholder våre data
 var baseUrl = 'https://smog-api.firebaseio.com/';
 
@@ -38,7 +42,7 @@ app.get('/stationdata', function (req, res) {
     .end(function (err, result) {
       res.status(200).send(result.body)
     }), function (error) {
-    console.log('404')
+    console.log('404');
     res.status(404).send(error)
   }
 });
@@ -52,26 +56,36 @@ app.get('/stationdata/:lat/:long', function (req, res) {
 });
 
 
-//getData();
-function getData() {
-  stations.getAllTimeseries().then(function (timeseries) {
+function updateData() {
+  console.log("start udpate data");
+  var getLiveDataPromise = stations.getAllTimeseries();
+  var getOldDataPromise = stations.getStationsWithDataFromFirebase();
+  Promise.all([getLiveDataPromise, getOldDataPromise]).then(function(values) {
+    if (values.length < 2) return; // how did this happen?
+    var timeseries = values[0];
+    var oldData = values[1];
+
     request
       .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + timeseries.join(',') + '&format=json&key=UuDoMtfi')
       .end(function (err, result) {
         var stations = result.body;
+        if (stations.length == 0) return; // no data from service, do not update db, so we have the old data
         var measurments = [];
         for (var i = 0; i < stations.length; i++) {
           var station = stations[i];
           var stationMeasurments = [];
           for (var j = 0; j < station.TimeSeries.length; j++) {
             // add the latest measurement
+            var timeserie = station.TimeSeries[j].Id;
+            var newMeasurementValue = station.TimeSeries[j].Measurments[0].Value;
             stationMeasurments.push({
-              timeserie: station.TimeSeries[j].Id,
+              timeserie: timeserie,
               type: station.TimeSeries[j].Component,
               unit: station.TimeSeries[j].Unit,
               from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
               to: station.TimeSeries[j].Measurments[0].DateTimeTo,
-              value: station.TimeSeries[j].Measurments[0].Value
+              value: newMeasurementValue,
+              trend: getTrendFortimeserie(timeserie, newMeasurementValue, getValueForTimeserie(timeserie, oldData))
             })
           }
           measurments.push({
@@ -82,12 +96,38 @@ function getData() {
             measurments: stationMeasurments
           })
         }
+        console.log("push data to firebase");
         pushDataToFirebase(measurments);
+        console.log("done updating data");
       }, function (error) {
         console.log("Could not get data", error);
       })
+
+  }, function(error) {
+    console.log("error", error);
   });
 }
+
+
+function getTrendFortimeserie(newValue, oldValue) {
+  if (newValue === null || oldValue === undefined) return TREND_EUQAL;
+  if (newValue === null || newValue === undefined) return TREND_EUQAL;
+  if (newValue == oldValue) return TREND_EUQAL;
+  if (newValue > oldValue) return TREND_INCREASING;
+  if (newValue < oldValue) return TREND_DECREASING;
+}
+
+
+function getValueForTimeserie(timeserie, allStations) {
+  for (var i = 0; i < allStations.length; i++) {
+    var station = allStations[i];
+    for (var j = 0 ; j < station.measurments.length; j++) {
+      if(station.measurments[j].timeserie === timeserie) return station.measurments[j].value;
+    }
+  }
+  return null;
+}
+
 
 function pushDataToFirebase(data) {
   var nodeRef = new Firebase(baseUrl + '/data/');
@@ -97,6 +137,18 @@ function pushDataToFirebase(data) {
     }
   });
 }
+
+
+// start updating two times an hour
+setInterval(function() {
+  updateData()
+}, 360000);
+
+
+
+
+
+
 
 
 app.get('/updatestations/', function (req, res) {

@@ -44,61 +44,59 @@ app.get('/stationdata', function (req, res) {
 });
 
 app.get('/stationdata/:lat/:long', function (req, res) {
-    stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function(closestStation) {
-        res.status(200).send(closestStation)
-    }, function(e) {
-        res.status(200).send(e);
-    })
+  stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function (closestStation) {
+    res.status(200).send(closestStation)
+  }, function (e) {
+    res.status(200).send(e);
+  })
 });
 
 
 //getData();
 function getData() {
-    stations.getAllTimeseries().then(function(timeseries) {
-        request
-            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + timeseries.join(',') + '&format=json&key=UuDoMtfi')
-            .end(function (err, result) {
-                var stations = result.body;
-                var measurments = [];
-                for (var i = 0; i  < stations.length; i++) {
-                    var station = stations[i];
-                    var stationMeasurments = [];
-                    for (var j = 0; j < station.TimeSeries.length; j++) {
-                        // add the latest measurement
-                        stationMeasurments.push({
-                            timeserie: station.TimeSeries[j].Id,
-                            type: station.TimeSeries[j].Component,
-                            unit: station.TimeSeries[j].Unit,
-                            from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
-                            to: station.TimeSeries[j].Measurments[0].DateTimeTo,
-                            value: station.TimeSeries[j].Measurments[0].Value
-                        })
-                    }
-                    measurments.push({
-                        id: station.Id,
-                        name: station.Name,
-                        lat: station.CoordinateY,
-                        long: station.CoordinateX,
-                        measurments: stationMeasurments
-                    })
-                }
-                pushDataToFirebase(measurments);
-            }, function (error) {
-                console.log("Could not get data", error);
-        })
-    });
+  stations.getAllTimeseries().then(function (timeseries) {
+    request
+      .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + timeseries.join(',') + '&format=json&key=UuDoMtfi')
+      .end(function (err, result) {
+        var stations = result.body;
+        var measurments = [];
+        for (var i = 0; i < stations.length; i++) {
+          var station = stations[i];
+          var stationMeasurments = [];
+          for (var j = 0; j < station.TimeSeries.length; j++) {
+            // add the latest measurement
+            stationMeasurments.push({
+              timeserie: station.TimeSeries[j].Id,
+              type: station.TimeSeries[j].Component,
+              unit: station.TimeSeries[j].Unit,
+              from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
+              to: station.TimeSeries[j].Measurments[0].DateTimeTo,
+              value: station.TimeSeries[j].Measurments[0].Value
+            })
+          }
+          measurments.push({
+            id: station.Id,
+            name: station.Name,
+            lat: station.CoordinateY,
+            long: station.CoordinateX,
+            measurments: stationMeasurments
+          })
+        }
+        pushDataToFirebase(measurments);
+      }, function (error) {
+        console.log("Could not get data", error);
+      })
+  });
 }
 
 function pushDataToFirebase(data) {
-    var nodeRef = new Firebase(baseUrl + '/data/');
-    nodeRef.set(data, function (firebaseResponse) {
-        if (null !== firebaseResponse) {
-            reject(new Error('Something wen\'t wrong, please try again!'));
-        }
-    });
+  var nodeRef = new Firebase(baseUrl + '/data/');
+  nodeRef.set(data, function (firebaseResponse) {
+    if (null !== firebaseResponse) {
+      reject(new Error('Something wen\'t wrong, please try again!'));
+    }
+  });
 }
-
-
 
 
 app.get('/updatestations/', function (req, res) {

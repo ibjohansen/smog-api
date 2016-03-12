@@ -28,7 +28,7 @@ exports.getAllTimeseries = function() {
                 }
             }
             resolve(timeseries);
-        }, function(e) {
+        }, function() {
             resolve([]);
         })
     });
@@ -49,7 +49,7 @@ function getStationsFromFirebase() {
     });
 }
 
-
+exports.getStationsWithDataFromFirebase = getStationsWithDataFromFirebase;
 function getStationsWithDataFromFirebase() {
     return new Promise(function (resolve, reject) {
         var db = new Firebase(baseUrl + '/data/');

@@ -41,7 +41,7 @@ app.get('/stationdata', function (req, res) {
         .end(function (err, result) {
             res.status(200).send(result.body)
         }), function (error) {
-            console.log('404')
+            console.log('404');
             res.status(404).send(error)
         }
 });
@@ -49,23 +49,58 @@ app.get('/stationdata', function (req, res) {
 
 app.get('/stationdata/:lat/:long', function (req, res) {
     stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function(closestStation) {
-        var no2ClosestStation = stations.getNO2TimeseriesForStation(closestStation);
-        request
-            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + no2ClosestStation.id + '&format=json&key=UuDoMtfi&from=201603112000&to=201603112200&')
-            .end(function (err, result) {
-                res.status(200).send(result.body)
-            }, function(e) {
-                res.status(200).send(e);
-            });
+        res.status(200).send(closestStation)
     }, function(e) {
         res.status(200).send(e);
     })
 });
 
 
+//getData();
+function getData() {
+    stations.getAllTimeseries().then(function(timeseries) {
+        request
+            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + timeseries.join(',') + '&format=json&key=UuDoMtfi')
+            .end(function (err, result) {
+                var stations = result.body;
+                var measurments = [];
+                for (var i = 0; i  < stations.length; i++) {
+                    var station = stations[i];
+                    var stationMeasurments = [];
+                    for (var j = 0; j < station.TimeSeries.length; j++) {
+                        // add the latest measurement
+                        stationMeasurments.push({
+                            timeserie: station.TimeSeries[j].Id,
+                            type: station.TimeSeries[j].Component,
+                            unit: station.TimeSeries[j].Unit,
+                            from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
+                            to: station.TimeSeries[j].Measurments[0].DateTimeTo,
+                            value: station.TimeSeries[j].Measurments[0].Value
+                        })
+                    }
+                    measurments.push({
+                        id: station.Id,
+                        name: station.Name,
+                        lat: station.CoordinateY,
+                        long: station.CoordinateX,
+                        measurments: stationMeasurments
+                    })
+                }
+                pushDataToFirebase(measurments);
+            }, function (error) {
+                console.log("Could not get data", error);
+        })
+    });
+}
 
-
-
+function pushDataToFirebase(data) {
+    var nodeRef = new Firebase(baseUrl + '/data/');
+    nodeRef.set(data, function (firebaseResponse) {
+        if (null !== firebaseResponse) {
+            reject(new Error('Something wen\'t wrong, please try again!'));
+        }
+    });
+}
 
 
 

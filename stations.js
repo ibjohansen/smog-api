@@ -1,11 +1,10 @@
-var Express = require('express');
 var Firebase = require('firebase');
 var baseUrl = 'https://smog-api.firebaseio.com/';
 
+
 exports.getClosesStation = function(location) {
-    return new Promise(function(resolve, rejext) {
-        getStationsFromFirebase().then(function(stations) {
-            //stations = toArray(stations);
+    return new Promise(function(resolve, reject) {
+        getStationsWithDataFromFirebase().then(function(stations) {
             var arrayOfPoints = stations.sort(function (a, b) {
                 a.distance = distanceBetweenPoints(location, {lat: a.lat, long: a.long});
                 b.distance = distanceBetweenPoints(location, {lat: b.lat, long: b.long});
@@ -16,15 +15,24 @@ exports.getClosesStation = function(location) {
             reject(e);
         })
     });
-}
+};
 
 
-exports.getNO2TimeseriesForStation = function (station) {
-    for (var i = 0; i < station.timeseries.length; i++) {
-        if (station.timeseries[i].type === "NO2") return station.timeseries[i]
-    }
-    return null;
-}
+exports.getAllTimeseries = function() {
+    return new Promise(function(resolve, reject) {
+        getStationsFromFirebase().then(function(stations) {
+            var timeseries = [];
+            for (var i = 0; i < stations.length; i++) {
+                for (var j = 0; j < stations[i].timeseries.length; j++) {
+                    timeseries.push(stations[i].timeseries[j].id);
+                }
+            }
+            resolve(timeseries);
+        }, function(e) {
+            resolve([]);
+        })
+    });
+};
 
 
 function getStationsFromFirebase() {
@@ -40,6 +48,22 @@ function getStationsFromFirebase() {
         });
     });
 }
+
+
+function getStationsWithDataFromFirebase() {
+    return new Promise(function (resolve, reject) {
+        var db = new Firebase(baseUrl + '/data/');
+        db.once('value', function (snapshot) {
+            var ret = snapshot.val();
+            if (null !== ret) {
+                resolve(ret);
+            } else {
+                reject(new Error('Stasjoner ikke funnet'));
+            }
+        });
+    });
+}
+
 
 function distanceBetweenPoints(p1, p2) {
     return Math.abs(Math.sqrt((p1.lat - p2.lat) * (p1.lat - p2.lat) + (p1.long - p2.long) * (p1.long - p2.long)));

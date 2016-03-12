@@ -42,13 +42,16 @@ app.get('/stationdata', function (req, res) {
 
 app.get('/stationdata/:lat/:long', function (req, res) {
     stations.getClosesStation({lat: req.params.lat, long: req.params.long}).then(function(closestStation) {
+        var no2ClosestStation = stations.getNO2TimeseriesForStation(closestStation);
         request
-            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + closestStation.NO2 + '&format=json&key=UuDoMtfi&from=201603112000&to=201603112200&')
+            .get('http://dataservice.luftkvalitet.info/onlinedata/timeserie/v2/?id=' + no2ClosestStation.id + '&format=json&key=UuDoMtfi&from=201603112000&to=201603112200&')
             .end(function (err, result) {
                 res.status(200).send(result.body)
             }, function(e) {
                 res.status(200).send(e);
             });
+    }, function(e) {
+        res.status(200).send(e);
     })
 });
 

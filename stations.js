@@ -5,7 +5,7 @@ var baseUrl = 'https://smog-api.firebaseio.com/';
 exports.getClosesStation = function(location) {
     return new Promise(function(resolve, rejext) {
         getStationsFromFirebase().then(function(stations) {
-            stations = toArray(stations);
+            //stations = toArray(stations);
             var arrayOfPoints = stations.sort(function (a, b) {
                 a.distance = distanceBetweenPoints(location, {lat: a.lat, long: a.long});
                 b.distance = distanceBetweenPoints(location, {lat: b.lat, long: b.long});
@@ -18,14 +18,12 @@ exports.getClosesStation = function(location) {
     });
 }
 
-function toArray(o){
-    var result = []
-    for (var key in o) {
-        if (o.hasOwnProperty(key)) {
-            result.push(o[key])
-        }
+
+exports.getNO2TimeseriesForStation = function (station) {
+    for (var i = 0; i < station.timeseries.length; i++) {
+        if (station.timeseries[i].type === "NO2") return station.timeseries[i]
     }
-    return result
+    return null;
 }
 
 

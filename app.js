@@ -69,7 +69,7 @@ function updateData() {
   console.log("start udpate data");
   var getLiveDataPromise = stations.getAllTimeseries();
   var getOldDataPromise = stations.getStationsWithDataFromFirebase();
-  Promise.all([getLiveDataPromise, getOldDataPromise]).then(function(values) {
+  Promise.all([getLiveDataPromise, getOldDataPromise]).then(function (values) {
     if (values.length < 2) return; // how did this happen?
     var timeseries = values[0];
     var oldData = values[1];
@@ -86,16 +86,23 @@ function updateData() {
           for (var j = 0; j < station.TimeSeries.length; j++) {
             // add the latest measurement
             var timeserie = station.TimeSeries[j].Id;
-            var newMeasurementValue = station.TimeSeries[j].Measurments[0].Value;
-            stationMeasurments.push({
-              timeserie: timeserie,
-              type: station.TimeSeries[j].Component,
-              unit: station.TimeSeries[j].Unit,
-              from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
-              to: station.TimeSeries[j].Measurments[0].DateTimeTo,
-              value: newMeasurementValue,
-              trend: getTrendFortimeserie(timeserie, newMeasurementValue, getValueForTimeserie(timeserie, oldData))
-            })
+
+            console.log('---------------------------------->');
+            console.log(station);
+            console.log('<----------------------------------');
+
+            if (timeserie !== 24) {
+              var newMeasurementValue = station.TimeSeries[j].Measurments[0].Value;
+              stationMeasurments.push({
+                timeserie: timeserie,
+                type: station.TimeSeries[j].Component,
+                unit: station.TimeSeries[j].Unit,
+                from: station.TimeSeries[j].Measurments[0].DateTimeFrom,
+                to: station.TimeSeries[j].Measurments[0].DateTimeTo,
+                value: newMeasurementValue,
+                trend: getTrendFortimeserie(timeserie, newMeasurementValue, getValueForTimeserie(timeserie, oldData))
+              })
+            }
           }
           measurments.push({
             id: station.Id,
@@ -112,7 +119,7 @@ function updateData() {
         console.log("Could not get data", error);
       })
 
-  }, function(error) {
+  }, function (error) {
     console.log("error", error);
   });
 }
@@ -130,8 +137,8 @@ function getTrendFortimeserie(newValue, oldValue) {
 function getValueForTimeserie(timeserie, allStations) {
   for (var i = 0; i < allStations.length; i++) {
     var station = allStations[i];
-    for (var j = 0 ; j < station.measurments.length; j++) {
-      if(station.measurments[j].timeserie === timeserie) return station.measurments[j].value;
+    for (var j = 0; j < station.measurments.length; j++) {
+      if (station.measurments[j].timeserie === timeserie) return station.measurments[j].value;
     }
   }
   return null;
@@ -149,15 +156,9 @@ function pushDataToFirebase(data) {
 
 
 // start updating two times an hour
-setInterval(function() {
+setInterval(function () {
   updateData()
 }, 360000);
-
-
-
-
-
-
 
 
 app.get('/updatestations/', function (req, res) {
